@@ -1,9 +1,10 @@
-package delete
+package segments
 
 import (
 	"errors"
 	resp "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/lib/api/response"
 	"github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/lib/logger/sl"
+	"github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/storage"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -13,21 +14,21 @@ import (
 )
 
 type Request struct {
-	Name string `json:"Name" validate:"required"`
+	Id int64 `json:"id" validate:"required"`
 }
 
 type Response struct {
 	resp.Response
-	Name string `json:"name,omitempty"`
+	Segments storage.UserSegmentsDTO `json:"segments,omitempty"`
 }
 
-type SegmentDeleter interface {
-	DeleteSegment(name string) error
+type UserSegmentsGetter interface {
+	GetUserSegments(userId int64) (*storage.UserSegmentsDTO, error)
 }
 
-func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
+func New(log *slog.Logger, userSegmentsGetter UserSegmentsGetter) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.segment.delete.New"
+		const op = "handlers.user.segments.New"
 
 		log = log.With(
 			slog.String("op", op),
@@ -64,26 +65,26 @@ func New(log *slog.Logger, segmentDeleter SegmentDeleter) http.HandlerFunc {
 			return
 		}
 
-		reqName := req.Name
+		id := req.Id
 
-		err = segmentDeleter.DeleteSegment(reqName)
+		userSegments, err := userSegmentsGetter.GetUserSegments(id)
 		if err != nil {
-			log.Error("failed to delete segment", sl.Err(err))
+			log.Error("failed to get user segments", sl.Err(err))
 
-			render.JSON(w, r, resp.Error("failed to delete segment"))
+			render.JSON(w, r, resp.Error("failed to get user segments"))
 
 			return
 		}
 
-		log.Info("segment deleted", slog.String("name", reqName))
+		log.Info("get user segments", slog.Int64("id", id))
 
-		responseOK(w, r, reqName)
+		responseOK(w, r, userSegments)
 	}
 }
 
-func responseOK(w http.ResponseWriter, r *http.Request, segmentName string) {
+func responseOK(w http.ResponseWriter, r *http.Request, userSegments *storage.UserSegmentsDTO) {
 	render.JSON(w, r, Response{
 		Response: resp.OK(),
-		Name:     segmentName,
+		Segments: *userSegments,
 	})
 }

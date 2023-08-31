@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/config"
-	deleteSegment "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/segment/delete"
+	addToUserSegment "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/segment/addToUser"
+	deleteSegment1 "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/segment/delete"
 	saveSegment "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/segment/save"
 	deleteUser "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/user/delete"
 	saveUser "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/user/save"
+	getUserSegments "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/handlers/user/segments"
 	mwLogger "github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/http-server/middleware/logger"
 	"github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/lib/logger/sl"
 	"github.com/DanilaNik/avito-backend-trainee-assignment-2023/internal/storage/postgresql"
@@ -29,7 +31,7 @@ func main() {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
-	log.Info("connect db", slog.String("env", cfg.Env))
+	//log.Info("connect db", slog.String("env", cfg.Env))
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
@@ -41,13 +43,13 @@ func main() {
 	router.Route("/user", func(r chi.Router) {
 		r.Post("/save", saveUser.New(log, storage))
 		r.Delete("/delete", deleteUser.New(log, storage))
-		//r.Get("/segments")
+		r.Get("/segments", getUserSegments.New(log, storage))
 	})
 
 	router.Route("/segment", func(r chi.Router) {
 		r.Post("/save", saveSegment.New(log, storage))
-		r.Delete("/delete", deleteSegment.New(log, storage))
-		//r.Post("addUser")
+		r.Delete("/delete", deleteSegment1.New(log, storage))
+		r.Post("/addToUser", addToUserSegment.New(log, storage))
 	})
 
 	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))

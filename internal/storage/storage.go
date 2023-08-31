@@ -7,6 +7,7 @@ var (
 	ErrSegmentExists        = errors.New("Segment exists")
 	ErrUserAlreadyInSegment = errors.New("User already in segment")
 	ErrUserSegmentNotFound  = errors.New("User in segment not found")
+	ErrUserNotFound         = errors.New("User not found")
 )
 
 type UserDTO struct {
@@ -19,12 +20,13 @@ type SegmentDTO struct {
 }
 
 type UserInSegmentDTO struct {
-	ID      int64
-	User    UserDTO
-	Segment SegmentDTO
+	UserID           int64
+	AddedSegments    []string
+	NotAddedSegments []string
+	DeletedSegments  []string
 }
 
-//type UsersSegmentsDTO struct {
-//	User     UserDTO
-//	Segments []SegmentDTO
-//}
+type UserSegmentsDTO struct {
+	UserId   int64
+	Segments []SegmentDTO
+}
